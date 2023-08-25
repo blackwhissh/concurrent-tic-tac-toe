@@ -7,7 +7,6 @@ public class ConcurrentPlayer implements Player {
     private final TicTacToe ticTacToe;
     private final char mark;
     private final PlayerStrategy playerStrategy;
-    private boolean hasWon;
     private final Lock moveLock = new ReentrantLock();
 
     public ConcurrentPlayer(TicTacToe ticTacToe, char mark, PlayerStrategy playerStrategy) {
@@ -19,51 +18,41 @@ public class ConcurrentPlayer implements Player {
 
     @Override
     public void run() {
-        synchronized (ticTacToe){
-            while (!hasWon) {
+        while (!gameOver()) {
+            if (ticTacToe.lastMark() != mark && !(ticTacToe.lastMark() == ' ' && mark == 'O')) {
                 Move move = playerStrategy.computeMove(mark, ticTacToe);
                 try {
                     moveLock.lock();
-                    ticTacToe.setMark(move.row, move.column, mark);
+                    if (!gameOver()) {
+                        ticTacToe.setMark(move.row, move.column, mark);
+                    }
 
                 } finally {
                     moveLock.unlock();
                 }
-                checkWin();
             }
         }
-
     }
 
-    private synchronized void checkWin() {
-        synchronized (ticTacToe){
-            char[][] table = ticTacToe.table();
+    private boolean gameOver() {
+        char[][] table = ticTacToe.table();
 
-            for (int i = 0; i < 3; i++) {
-                if (table[i][0] == mark && table[i][1] == mark && table[i][2] == mark) {
-                    hasWon = true;
-                    return;
-                }
-            }
-
-            for (int j = 0; j < 3; j++) {
-                if (table[0][j] == mark && table[1][j] == mark && table[2][j] == mark) {
-                    hasWon = true;
-                    return;
-                }
-            }
-
-            if ((table[0][0] == mark && table[1][1] == mark && table[2][2] == mark) ||
-                    (table[0][2] == mark && table[1][1] == mark && table[2][0] == mark)) {
-                hasWon = true;
-                return;
-            }
-
-            hasWon = false;
-        }
-
-
+        return ((table[0][0] == 'X' && table[0][1] == 'X' && table[0][2] == 'X') ||
+            (table[0][0] == 'O' && table[0][1] == 'O' && table[0][2] == 'O') ||
+            (table[1][0] == 'X' && table[1][1] == 'X' && table[1][2] == 'X') ||
+            (table[1][0] == 'O' && table[1][1] == 'O' && table[1][2] == 'O') ||
+            (table[2][0] == 'X' && table[2][1] == 'X' && table[2][2] == 'X') ||
+            (table[2][0] == 'O' && table[2][1] == 'O' && table[2][2] == 'O') ||
+            (table[0][0] == 'X' && table[1][0] == 'X' && table[2][0] == 'X') ||
+            (table[0][0] == 'O' && table[1][0] == 'O' && table[2][0] == 'O') ||
+            (table[0][1] == 'X' && table[1][1] == 'X' && table[2][1] == 'X') ||
+            (table[0][1] == 'O' && table[1][1] == 'O' && table[2][1] == 'O') ||
+            (table[0][2] == 'X' && table[1][2] == 'X' && table[2][2] == 'X') ||
+            (table[0][2] == 'O' && table[1][2] == 'O' && table[2][2] == 'O') ||
+            (table[0][0] == 'X' && table[1][1] == 'X' && table[2][2] == 'X') ||
+            (table[0][0] == 'O' && table[1][1] == 'O' && table[2][2] == 'O') ||
+            (table[0][2] == 'X' && table[1][1] == 'X' && table[2][0] == 'X') ||
+            (table[0][2] == 'O' && table[1][1] == 'O' && table[2][0] == 'O'));
     }
-
 
 }
