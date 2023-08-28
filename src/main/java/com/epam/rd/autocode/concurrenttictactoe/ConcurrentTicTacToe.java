@@ -1,12 +1,8 @@
 package com.epam.rd.autocode.concurrenttictactoe;
 
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
 public class ConcurrentTicTacToe implements TicTacToe {
     private final char[][] gameTable;
     private char lastMark;
-    private final Lock lock = new ReentrantLock();
 
     public ConcurrentTicTacToe() {
         gameTable = new char[3][3];
@@ -15,47 +11,33 @@ public class ConcurrentTicTacToe implements TicTacToe {
                 gameTable[i][j] = ' ';
             }
         }
-        lastMark = 'O'; // 'O' plays first
+        lastMark = ' ';
     }
 
     @Override
-    public synchronized void setMark(int x, int y, char mark) {
-        lock.lock();
-        try {
-            if (gameTable[x][y] == ' ') {
-                gameTable[x][y] = mark;
-                lastMark = mark;
-            }else {
-                throw new IllegalArgumentException();
-            }
-        } finally {
-            lock.unlock();
+    public void setMark(int x, int y, char mark) {
+        if (gameTable[x][y] == ' ') {
+            gameTable[x][y] = mark;
+            lastMark = mark;
+        } else {
+            throw new IllegalArgumentException();
         }
     }
 
     @Override
     public char[][] table() {
-        lock.lock();
-        try {
-            char[][] copy = new char[3][3];
-            for (int i = 0; i < 3; i++) {
-                System.arraycopy(gameTable[i], 0, copy[i], 0, 3);
-            }
-            return copy;
-        } finally {
-            lock.unlock();
+        char[][] copy = new char[3][3];
+        for (int i = 0; i < 3; i++) {
+            System.arraycopy(gameTable[i], 0, copy[i], 0, 3);
         }
+        return copy;
     }
 
     @Override
     public char lastMark() {
-        lock.lock();
-        try {
-            return lastMark;
-        } finally {
-            lock.unlock();
-        }
+        return lastMark;
     }
 
 
 }
+
